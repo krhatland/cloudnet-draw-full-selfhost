@@ -49,8 +49,8 @@ def main(mytimer: func.TimerRequest) -> None:
 
     # Step 4: Upload files to Blob Storage
     credential = DefaultAzureCredential()
-    account_url = "https://cndselfhostrgab91.blob.core.windows.net"
-    container_name = "drawfunc"
+    account_url = os.environ.get("DRAWING_STORAGE_URL")
+    container_name = os.environ.get("DRAWING_CONTAINER_NAME", "drawfunc")
     blob_service_client = BlobServiceClient(account_url=account_url, credential=credential)
 
     # Upload JSON
