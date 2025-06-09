@@ -3,7 +3,7 @@ IaC and Function code
 
 ## Deploy to Azure
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/main.bicep)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https://github.com/krhatland/cloudnet-draw-full-selfhost/blob/main/infra/main.bicep)
 
 ### Parameters
 
