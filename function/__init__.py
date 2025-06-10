@@ -6,7 +6,6 @@ import azure.functions as func
 
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
-from azure.storage.blob import BlobServiceClient
 
 from .azure_query import get_vnet_topology
 from .MLD import create_drawio_vnet_hub_and_spokes_diagram_MLD
