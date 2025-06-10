@@ -6,6 +6,7 @@ import azure.functions as func
 
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient
 
 from .azure_query import get_vnet_topology
 from .MLD import create_drawio_vnet_hub_and_spokes_diagram_MLD
@@ -52,6 +53,7 @@ def main(mytimer: func.TimerRequest) -> None:
     blob_service_client = BlobServiceClient(
         account_url=account_url, credential=credential
     )
+    blob_service_client = BlobServiceClient(account_url=account_url, credential=credential)
 
     # Upload JSON
     blob_client_json = blob_service_client.get_blob_client(

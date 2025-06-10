@@ -121,6 +121,7 @@
       "identity": { "type": "SystemAssigned" },
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "linuxFxVersion": "PYTHON|3.10",
           "appSettings": [
@@ -137,7 +138,26 @@
             { "name": "DRAWING_CONTAINER_NAME", "value": "[parameters('containerName')]" }
           ]
         },
-        "httpsOnly": true
+        "functionAppConfig": {
+          "deployment": {
+            "storage": {
+              "type": "blobcontainer",
+              "value": "[format('https://{0}.blob.core.windows.net/app-package-{1}', parameters('storageAccountName'), parameters('functionAppName'))]",
+              "authentication": {
+                "type": "storageaccountconnectionstring",
+                "storageAccountConnectionStringName": "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+              }
+            }
+          },
+          "runtime": {
+            "name": "python",
+            "version": "3.10"
+          },
+          "scaleAndConcurrency": {
+            "maximumInstanceCount": 100,
+            "instanceMemoryMB": 2048
+          }
+        }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
