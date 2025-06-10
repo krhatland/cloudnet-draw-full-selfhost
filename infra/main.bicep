@@ -70,16 +70,17 @@ resource drawingContainer 'Microsoft.Storage/storageAccounts/blobServices/contai
   }
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   name: appServicePlanName
   location: location
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
+    name: 'FC1'  // Flex Consumption SKU
+    tier: 'FlexConsumption'
   }
+  kind: 'linux'
 }
 
-resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
+resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
@@ -89,7 +90,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'PYTHON|3.10'
+      linuxFxVersion: 'Python|3.10'
       appSettings: [
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
@@ -115,6 +116,11 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     }
     httpsOnly: true
   }
+  dependsOn: [
+    appServicePlan
+    storage
+    drawingStorage
+  ]
 }
 
 resource drawingStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
@@ -122,9 +128,8 @@ resource drawingStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2
   scope: drawingStorage
   properties: {
     principalId: functionApp.identity.principalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
   }
 }
 
 output functionAppEndpoint string = 'https://${functionApp.properties.defaultHostName}'
-
