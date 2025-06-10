@@ -18,19 +18,26 @@
     "storageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the Storage Account"
+        "description": "Name for the Storage Account for Function App"
       }
     },
     "drawingStorageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the Storage Account used to store drawings"
+        "description": "Name for the Storage Account for drawing output"
       }
     },
     "appServicePlanName": {
       "type": "string",
       "metadata": {
         "description": "Name for the App Service Plan"
+      }
+    },
+    "containerName": {
+      "type": "string",
+      "defaultValue": "drawfunc",
+      "metadata": {
+        "description": "Name for the container to store drawings"
       }
     }
   },
@@ -80,7 +87,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2022-09-01",
-      "name": "[format('{0}/default/drawfunc', parameters('drawingStorageAccountName'))]",
+      "name": "[format('{0}/default/{1}', parameters('drawingStorageAccountName'), parameters('containerName'))]",
       "properties": { "publicAccess": "None" },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName'))]"
@@ -88,14 +95,22 @@
     },
     {
       "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2023-01-01",
+      "apiVersion": "2024-04-01",
       "name": "[parameters('appServicePlanName')]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "FC1",
-        "tier": "FlexConsumption"
+        "tier": "FlexConsumption",
+        "size": "FC1",
+        "family": "FC",
+        "capacity": 0
       },
-      "kind": "linux"
+      "kind": "functionapp",
+      "properties": {
+        "perSiteScaling": false,
+        "elasticScaleEnabled": false,
+        "reserved": true
+      }
     },
     {
       "type": "Microsoft.Web/sites",
@@ -107,7 +122,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "siteConfig": {
-          "linuxFxVersion": "Python|3.10",
+          "linuxFxVersion": "PYTHON|3.10",
           "appSettings": [
             { "name": "FUNCTIONS_WORKER_RUNTIME", "value": "python" },
             { "name": "FUNCTIONS_EXTENSION_VERSION", "value": "~4" },
@@ -119,7 +134,7 @@
               "name": "DRAWING_STORAGE_URL",
               "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName')), '2022-09-01').primaryEndpoints.blob]"
             },
-            { "name": "DRAWING_CONTAINER_NAME", "value": "drawfunc" }
+            { "name": "DRAWING_CONTAINER_NAME", "value": "[parameters('containerName')]" }
           ]
         },
         "httpsOnly": true

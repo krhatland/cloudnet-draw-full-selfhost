@@ -4,16 +4,22 @@ param location string = resourceGroup().location
 @description('Name for the Function App')
 param functionAppName string
 
-@description('Name for the Storage Account')
+@description('Name for the Storage Account (AzureWebJobsStorage)')
 param storageAccountName string
 
-@description('Name for the Storage Account used to store drawings')
+@description('Name for the Storage Account to store drawings')
 param drawingStorageAccountName string
 
 @description('Name for the App Service Plan')
 param appServicePlanName string
 
-resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+@description('Name for the container to store diagrams')
+param containerName string = 'drawfunc'
+
+@description('Python version to use (e.g., 3.10)')
+param pythonVersion string = '3.10'
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName
   location: location
   sku: {
@@ -38,7 +44,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-resource drawingStorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+resource drawingStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: drawingStorageAccountName
   location: location
   sku: {
@@ -63,24 +69,33 @@ resource drawingStorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-resource drawingContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
-  name: '${drawingStorage.name}/default/drawfunc'
+resource drawContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
+  name: '${drawingStorageAccount.name}/default/${containerName}'
   properties: {
     publicAccess: 'None'
   }
+  dependsOn: [drawingStorageAccount]
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: appServicePlanName
   location: location
   sku: {
-    name: 'FC1'  // Flex Consumption SKU
+    name: 'FC1'
     tier: 'FlexConsumption'
+    size: 'FC1'
+    family: 'FC'
+    capacity: 0
   }
-  kind: 'linux'
+  kind: 'functionapp'
+  properties: {
+    perSiteScaling: false
+    elasticScaleEnabled: false
+    reserved: true
+  }
 }
 
-resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
+resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
@@ -90,7 +105,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'Python|3.10'
+      linuxFxVersion: 'PYTHON|${pythonVersion}'
       appSettings: [
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
@@ -102,15 +117,15 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${listKeys(storage.id, '2022-09-01').keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${listKeys(storageAccount.id, '2022-09-01').keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
           name: 'DRAWING_STORAGE_URL'
-          value: drawingStorage.properties.primaryEndpoints.blob
+          value: reference(drawingStorageAccount.id, '2022-09-01').primaryEndpoints.blob
         }
         {
           name: 'DRAWING_CONTAINER_NAME'
-          value: 'drawfunc'
+          value: containerName
         }
       ]
     }
@@ -118,18 +133,22 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   }
   dependsOn: [
     appServicePlan
-    storage
-    drawingStorage
+    storageAccount
+    drawingStorageAccount
   ]
 }
 
 resource drawingStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(functionApp.name, drawingStorage.id, 'blobcontrib')
-  scope: drawingStorage
+  name: guid(functionApp.name, drawingStorageAccount.id, 'blobcontrib')
+  scope: drawingStorageAccount
   properties: {
-    principalId: functionApp.identity.principalId
+    principalId: reference(functionApp.id, '2022-03-01', 'full').identity.principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
   }
+  dependsOn: [
+    functionApp
+    drawingStorageAccount
+  ]
 }
 
 output functionAppEndpoint string = 'https://${functionApp.properties.defaultHostName}'
