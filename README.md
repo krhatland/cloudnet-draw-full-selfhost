@@ -13,5 +13,15 @@ IaC and Function code
 | `storageAccountName` | Name of the Storage Account                  |
 | `drawingStorageAccountName` | Name of the Storage Account for diagrams |
 | `appServicePlanName` | Name of the App Service Plan (Consumption)   |
-| `uamiName`           | User Assigned Managed Identity (Optional)    |
+
+### Configuration
+
+The Function runs daily at midnight UTC (`0 0 0 * * *`). Diagrams are uploaded
+to the storage account specified by `drawingStorageAccountName` using managed
+identity authentication.
+
+Environment variables provided to the Function App:
+
+- `DRAWING_STORAGE_URL` – blob endpoint of the drawing storage account
+- `DRAWING_CONTAINER_NAME` – container where diagrams are stored (`drawfunc`)
 

@@ -13,9 +13,6 @@ param drawingStorageAccountName string
 @description('Name for the App Service Plan')
 param appServicePlanName string
 
-@description('Name for the User Assigned Managed Identity')
-param uamiName string
-
 resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName
   location: location
@@ -94,6 +91,10 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     siteConfig: {
       linuxFxVersion: 'PYTHON|3.10'
       appSettings: [
+      fmqzz6-codex/set-up-azure-function-deployment-with-managed-identity
+        { name: 'FUNCTIONS_WORKER_RUNTIME'; value: 'python' }
+        { name: 'FUNCTIONS_EXTENSION_VERSION'; value: '~4' }
+        { name: 'AzureWebJobsStorage'; value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${listKeys(storage.id, '2022-09-01').keys[0].value};EndpointSuffix=${environment().suffixes.storage}' }
         { name: 'AzureWebJobsStorage'; value: storage.properties.primaryEndpoints.blob }
         { name: 'DRAWING_STORAGE_URL'; value: drawingStorage.properties.primaryEndpoints.blob }
         { name: 'DRAWING_CONTAINER_NAME'; value: 'drawfunc' }
