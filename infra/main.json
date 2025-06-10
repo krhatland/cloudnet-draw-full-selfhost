@@ -170,7 +170,8 @@
       "name": "[guid(parameters('functionAppName'), resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName')), 'blobcontrib')]",
       "properties": {
         "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2023-01-01', 'full').identity.principalId]",
-        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+        "principalType": "ServicePrincipal"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName'))]",
