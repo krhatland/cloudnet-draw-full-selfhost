@@ -18,13 +18,7 @@
     "storageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "Name for the Storage Account for Function App"
-      }
-    },
-    "drawingStorageAccountName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name for the Storage Account for drawing output"
+        "description": "Name for the single Storage Account"
       }
     },
     "appServicePlanName": {
@@ -64,33 +58,12 @@
       }
     },
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2022-09-01",
-      "name": "[parameters('drawingStorageAccountName')]",
-      "location": "[parameters('location')]",
-      "sku": { "name": "Standard_LRS" },
-      "kind": "StorageV2",
-      "properties": {
-        "minimumTlsVersion": "TLS1_2",
-        "allowBlobPublicAccess": true,
-        "networkAcls": { "bypass": "AzureServices", "defaultAction": "Deny" },
-        "encryption": {
-          "keySource": "Microsoft.Storage",
-          "services": {
-            "blob": { "enabled": true },
-            "file": { "enabled": true }
-          }
-        },
-        "accessTier": "Hot"
-      }
-    },
-    {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2022-09-01",
-      "name": "[format('{0}/default/{1}', parameters('drawingStorageAccountName'), parameters('containerName'))]",
+      "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('containerName'))]",
       "properties": { "publicAccess": "None" },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
       ]
     },
     {
@@ -122,20 +95,6 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "httpsOnly": true,
-        "siteConfig": {
-          "appSettings": [
-            { "name": "FUNCTIONS_EXTENSION_VERSION", "value": "~4" },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', parameters('storageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2022-09-01').keys[0].value, environment().suffixes.storage)]"
-            },
-            {
-              "name": "DRAWING_STORAGE_URL",
-              "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName')), '2022-09-01').primaryEndpoints.blob]"
-            },
-            { "name": "DRAWING_CONTAINER_NAME", "value": "drawfunc" }
-          ]
-        },
         "functionAppConfig": {
           "deployment": {
             "storage": {
@@ -159,23 +118,22 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
       ]
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-04-01-preview",
-      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', parameters('drawingStorageAccountName'))]",
-      "name": "[guid(parameters('functionAppName'), resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName')), 'blobcontrib')]",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+      "name": "[guid(parameters('functionAppName'), resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), 'blobcontrib')]",
       "properties": {
         "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2023-01-01', 'full').identity.principalId]",
         "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
         "principalType": "ServicePrincipal"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('drawingStorageAccountName'))]",
-        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
       ]
     }
   ],
