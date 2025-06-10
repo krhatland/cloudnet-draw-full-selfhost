@@ -91,13 +91,26 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     siteConfig: {
       linuxFxVersion: 'PYTHON|3.10'
       appSettings: [
-      fmqzz6-codex/set-up-azure-function-deployment-with-managed-identity
-        { name: 'FUNCTIONS_WORKER_RUNTIME'; value: 'python' }
-        { name: 'FUNCTIONS_EXTENSION_VERSION'; value: '~4' }
-        { name: 'AzureWebJobsStorage'; value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${listKeys(storage.id, '2022-09-01').keys[0].value};EndpointSuffix=${environment().suffixes.storage}' }
-        { name: 'AzureWebJobsStorage'; value: storage.properties.primaryEndpoints.blob }
-        { name: 'DRAWING_STORAGE_URL'; value: drawingStorage.properties.primaryEndpoints.blob }
-        { name: 'DRAWING_CONTAINER_NAME'; value: 'drawfunc' }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'python'
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
+        }
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${listKeys(storage.id, '2022-09-01').keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
+        }
+        {
+          name: 'DRAWING_STORAGE_URL'
+          value: drawingStorage.properties.primaryEndpoints.blob
+        }
+        {
+          name: 'DRAWING_CONTAINER_NAME'
+          value: 'drawfunc'
+        }
       ]
     }
     httpsOnly: true
@@ -105,7 +118,7 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 resource drawingStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(functionApp.identity.principalId, drawingStorage.id, 'blobcontrib')
+  name: guid(functionApp.name, drawingStorage.id, 'blobcontrib')
   scope: drawingStorage
   properties: {
     principalId: functionApp.identity.principalId
@@ -113,5 +126,5 @@ resource drawingStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2
   }
 }
 
-output functionAppEndpoint string = 'https://${functionApp.defaultHostName}'
+output functionAppEndpoint string = 'https://${functionApp.properties.defaultHostName}'
 

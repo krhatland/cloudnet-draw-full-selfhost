@@ -49,11 +49,9 @@ def main(mytimer: func.TimerRequest) -> None:
     credential = DefaultAzureCredential()
     account_url = os.environ.get("DRAWING_STORAGE_URL")
     container_name = os.environ.get("DRAWING_CONTAINER_NAME", "drawfunc")
-    fmqzz6-codex/set-up-azure-function-deployment-with-managed-identity
     blob_service_client = BlobServiceClient(
         account_url=account_url, credential=credential
     )
-    blob_service_client = BlobServiceClient(account_url=account_url, credential=credential)
 
     # Upload JSON
     blob_client_json = blob_service_client.get_blob_client(
