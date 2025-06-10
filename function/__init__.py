@@ -5,18 +5,18 @@ from datetime import datetime
 import azure.functions as func
 
 from azure.identity import DefaultAzureCredential
+from azure.mgmt.network import NetworkManagementClient
 from azure.storage.blob import BlobServiceClient
 
 from .azure_query import get_vnet_topology
 from .MLD import create_drawio_vnet_hub_and_spokes_diagram_MLD
 from .HLD import create_drawio_vnet_hub_and_spokes_diagram_HLD
 
-
 def main(mytimer: func.TimerRequest) -> None:
-    logging.info("Function triggered!")
+    logging.info('Function triggered!')
 
     # Get current UTC timestamp
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")  
 
     # Step 1: Query Azure for network topology
     topology_data = get_vnet_topology()
@@ -33,7 +33,8 @@ def main(mytimer: func.TimerRequest) -> None:
     diagram_file_name_MLD = f"{timestamp}_network_diagram_MLD.drawio"
     diagram_file_path_MLD = f"/tmp/{diagram_file_name_MLD}"
     create_drawio_vnet_hub_and_spokes_diagram_MLD(
-        output_filename=diagram_file_path_MLD, json_input_file=json_file_path
+        output_filename=diagram_file_path_MLD,
+        json_input_file=json_file_path
     )
     logging.info(f"Generated MLD diagram at {diagram_file_path_MLD}")
 
@@ -41,14 +42,15 @@ def main(mytimer: func.TimerRequest) -> None:
     diagram_file_name_HLD = f"{timestamp}_network_diagram_HLD.drawio"
     diagram_file_path_HLD = f"/tmp/{diagram_file_name_HLD}"
     create_drawio_vnet_hub_and_spokes_diagram_HLD(
-        output_filename=diagram_file_path_HLD, json_input_file=json_file_path
+        output_filename=diagram_file_path_HLD,
+        json_input_file=json_file_path
     )
     logging.info(f"Generated HLD diagram at {diagram_file_path_HLD}")
 
     # Step 4: Upload files to Blob Storage
     credential = DefaultAzureCredential()
     account_url = os.environ.get("DRAWING_STORAGE_URL")
-    container_name = os.environ.get("DRAWING_CONTAINER_NAME", "drawfunc")
+    container_name = os.environ.get("DRAWING_CONTAINER_NAME")
     blob_service_client = BlobServiceClient(
         account_url=account_url, credential=credential
     )

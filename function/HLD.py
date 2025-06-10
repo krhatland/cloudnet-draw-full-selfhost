@@ -1,19 +1,13 @@
 import json
 import logging
 from lxml import etree
-
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-
-def create_drawio_vnet_hub_and_spokes_diagram_HLD(
-    output_filename: str, json_input_file: str
-):
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    
+def create_drawio_vnet_hub_and_spokes_diagram_HLD(output_filename: str, json_input_file: str):
 
     # Load the topology JSON data
-    with open(json_input_file, "r") as file:
+    with open(json_input_file, 'r') as file:
         topology = json.load(file)
 
     logging.info("Loaded topology data from JSON")
@@ -21,40 +15,22 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
     spokes = topology.get("spokes", [])
 
     # Root XML structure
-    mxfile = etree.Element(
-        "mxfile", attrib={"host": "Electron", "version": "25.0.2"}
-    )
-    diagram = etree.SubElement(
-        mxfile, "diagram", name="Hub and Spoke Topology"
-    )
+    mxfile = etree.Element("mxfile", attrib={"host": "Electron", "version": "25.0.2"})
+    diagram = etree.SubElement(mxfile, "diagram", name="Hub and Spoke Topology")
     mxGraphModel = etree.SubElement(
         diagram,
         "mxGraphModel",
         attrib={
-            "dx": "371",
-            "dy": "1462",
-            "grid": "0",
-            "gridSize": "10",
-            "guides": "1",
-            "tooltips": "1",
-            "connect": "1",
-            "arrows": "1",
-            "fold": "1",
-            "page": "0",
-            "pageScale": "1",
-            "pageWidth": "827",
-            "pageHeight": "1169",
-            "math": "0",
-            "shadow": "0",
-            "background": "#ffffff",
+            "dx": "371", "dy": "1462", "grid": "0", "gridSize": "10", "guides": "1",
+            "tooltips": "1", "connect": "1", "arrows": "1", "fold": "1",
+            "page": "0", "pageScale": "1", "pageWidth": "827", "pageHeight": "1169",
+            "math": "0", "shadow": "0", "background": "#ffffff"
         },
     )
     root = etree.SubElement(mxGraphModel, "root")
 
     etree.SubElement(root, "mxCell", id="0")  # Root cell
-    etree.SubElement(
-        root, "mxCell", id="1", parent="0"
-    )  # Parent cell for all shapes
+    etree.SubElement(root, "mxCell", id="1", parent="0")  # Parent cell for all shapes   
 
     # Add Hub VNet
     hub = etree.SubElement(
@@ -65,42 +41,16 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
         vertex="1",
         parent="1",
     )
-    # Verify if there is a Virtual-Hub vWAN environment HUB
+    #Verify if there is a Virtual-Hub vWAN environment HUB
     if hub_vnet.get("type") == "virtual_hub":
-        hub.set(
-            "value",
-            f"Subscription: {
-                hub_vnet['subscription_name']}\n{
-                hub_vnet.get(
-                    'name',
-                    'Hub VNet')}\n{
-                    hub_vnet.get(
-                        'address_space',
-                        'N/A')}",
-        )
+        hub.set("value", f"Subscription: {hub_vnet['subscription_name']}\n{hub_vnet.get('name', 'Hub VNet')}\n{hub_vnet.get('address_space', 'N/A')}")
     else:
-        hub.set(
-            "value",
-            f"Subscription: {
-                hub_vnet['subscription_name']}\n{
-                hub_vnet.get(
-                    'name',
-                    'Hub VNet')}\n{
-                    hub_vnet.get(
-                        'address_space',
-                        'N/A')}",
-        )
+        hub.set("value", f"Subscription: {hub_vnet['subscription_name']}\n{hub_vnet.get('name', 'Hub VNet')}\n{hub_vnet.get('address_space', 'N/A')}")
 
     etree.SubElement(
         hub,
         "mxGeometry",
-        attrib={
-            "x": "400",
-            "y": "400",
-            "width": "400",
-            "height": "50",
-            "as": "geometry",
-        },
+        attrib={"x": "400", "y": "400", "width": "400", "height": "50", "as": "geometry"},
     )
 
     # Add VNET image to the bottom right of the Hub
@@ -115,15 +65,9 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
     etree.SubElement(
         image,
         "mxGeometry",
-        attrib={
-            "x": "780",
-            "y": "440",
-            "width": "20",
-            "height": "20",
-            "as": "geometry",
-        },
+        attrib={"x": "780", "y": "440", "width": "20", "height": "20", "as": "geometry"},
     )
-
+    
     # If the hub is a virtual hub, show the Virtual Hub icon on the left
     if hub_vnet.get("type", "") == "virtual_hub":
         virtual_hub_icon = etree.SubElement(
@@ -137,15 +81,9 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
         etree.SubElement(
             virtual_hub_icon,
             "mxGeometry",
-            attrib={
-                "x": "190",
-                "y": str(375 + 50 - 10),
-                "width": "20",
-                "height": "20",
-                "as": "geometry",
-            },
+            attrib={"x": "190", "y": str(375 + 50 - 10), "width": "20", "height": "20", "as": "geometry"},
         )
-
+        
     # Add extra icons for ExpressRoute, Firewall, VPN Gateway if applicable
     icon_x_base = 755  # Starting from right edge of hub
     icon_y = 400 + 50 - 10
@@ -163,13 +101,7 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
         etree.SubElement(
             express_icon,
             "mxGeometry",
-            attrib={
-                "x": str(icon_x_base),
-                "y": str(icon_y),
-                "width": "20",
-                "height": "20",
-                "as": "geometry",
-            },
+            attrib={"x": str(icon_x_base), "y": str(icon_y), "width": "20", "height": "20", "as": "geometry"},
         )
         icon_x_base += icon_spacing
 
@@ -185,13 +117,7 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
         etree.SubElement(
             firewall_icon,
             "mxGeometry",
-            attrib={
-                "x": str(icon_x_base),
-                "y": str(icon_y),
-                "width": "20",
-                "height": "20",
-                "as": "geometry",
-            },
+            attrib={"x": str(icon_x_base), "y": str(icon_y), "width": "20", "height": "20", "as": "geometry"},
         )
         icon_x_base += icon_spacing
 
@@ -207,13 +133,7 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
         etree.SubElement(
             vpn_icon,
             "mxGeometry",
-            attrib={
-                "x": str(icon_x_base),
-                "y": str(icon_y),
-                "width": "20",
-                "height": "20",
-                "as": "geometry",
-            },
+            attrib={"x": str(icon_x_base), "y": str(icon_y), "width": "20", "height": "20", "as": "geometry"},
         )
 
     # Dynamic spacing for spokes
@@ -223,7 +143,7 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
     right_spokes = []
     non_peered_spokes = []
     peered_spokes = []
-
+    
     # Separate peered and non-peered spokes
     for spoke in spokes:
         if spoke.get("peerings"):
@@ -253,25 +173,13 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             vertex="1",
             parent="1",
         )
-        spoke_cell.set(
-            "value",
-            f"Subscription: {
-                spoke['subscription_name']}\n{
-                spoke['name']}\n{
-                spoke['address_space']}",
-        )
+        spoke_cell.set("value", f"Subscription: {spoke['subscription_name']}\n{spoke['name']}\n{spoke['address_space']}")
         etree.SubElement(
             spoke_cell,
             "mxGeometry",
-            attrib={
-                "x": "900",
-                "y": str(y_position),
-                "width": "400",
-                "height": "50",
-                "as": "geometry",
-            },
+            attrib={"x": "900", "y": str(y_position), "width": "400", "height": "50", "as": "geometry"},
         )
-
+        
         # Add image to the bottom right of each Spoke
         image = etree.SubElement(
             root,
@@ -282,9 +190,9 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             parent="1",
         )
         # Ensure 'x' and 'y' are integers before adding
-        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib["x"])
-        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib["y"])
-
+        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib['x'])
+        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib['y'])
+        
         etree.SubElement(
             image,
             "mxGeometry",
@@ -308,22 +216,10 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0078D4;strokeWidth=2;endArrow=block;startArrow=block;",
             parent="1",
         )
-        edge_geometry = etree.SubElement(
-            edge, "mxGeometry", attrib={"relative": "1", "as": "geometry"}
-        )
-        edge_points = etree.SubElement(
-            edge_geometry, "Array", attrib={"as": "points"}
-        )
-        etree.SubElement(
-            edge_points,
-            "mxPoint",
-            attrib={"x": "800", "y": str(y_position + 25)},
-        )
-        etree.SubElement(
-            edge_points,
-            "mxPoint",
-            attrib={"x": "900", "y": str(y_position + 25)},
-        )
+        edge_geometry = etree.SubElement(edge, "mxGeometry", attrib={"relative": "1", "as": "geometry"})
+        edge_points = etree.SubElement(edge_geometry, "Array", attrib={"as": "points"})
+        etree.SubElement(edge_points, "mxPoint", attrib={"x": "800", "y": str(y_position + 25)})
+        etree.SubElement(edge_points, "mxPoint", attrib={"x": "900", "y": str(y_position + 25)})
 
     # Add spokes on the left-hand side
     for index, spoke in enumerate(left_spokes):
@@ -336,23 +232,11 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             vertex="1",
             parent="1",
         )
-        spoke_cell.set(
-            "value",
-            f"Subscription: {
-                spoke['subscription_name']}\n{
-                spoke['name']}\n{
-                spoke['address_space']}",
-        )
+        spoke_cell.set("value", f"Subscription: {spoke['subscription_name']}\n{spoke['name']}\n{spoke['address_space']}")
         etree.SubElement(
             spoke_cell,
             "mxGeometry",
-            attrib={
-                "x": "-100",
-                "y": str(y_position),
-                "width": "400",
-                "height": "50",
-                "as": "geometry",
-            },
+            attrib={"x": "-100", "y": str(y_position), "width": "400", "height": "50", "as": "geometry"},
         )
         # Add image to the bottom right of each Spoke
         image = etree.SubElement(
@@ -364,9 +248,9 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             parent="1",
         )
         # Ensure 'x' and 'y' are integers before adding
-        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib["x"])
-        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib["y"])
-
+        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib['x'])
+        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib['y'])
+        
         etree.SubElement(
             image,
             "mxGeometry",
@@ -390,23 +274,11 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0078D4;strokeWidth=2;endArrow=block;startArrow=block;",
             parent="1",
         )
-        edge_geometry = etree.SubElement(
-            edge, "mxGeometry", attrib={"relative": "1", "as": "geometry"}
-        )
-        edge_points = etree.SubElement(
-            edge_geometry, "Array", attrib={"as": "points"}
-        )
-        etree.SubElement(
-            edge_points,
-            "mxPoint",
-            attrib={"x": "400", "y": str(y_position + 25)},
-        )
-        etree.SubElement(
-            edge_points,
-            "mxPoint",
-            attrib={"x": "300", "y": str(y_position + 25)},
-        )
-
+        edge_geometry = etree.SubElement(edge, "mxGeometry", attrib={"relative": "1", "as": "geometry"})
+        edge_points = etree.SubElement(edge_geometry, "Array", attrib={"as": "points"})
+        etree.SubElement(edge_points, "mxPoint", attrib={"x": "400", "y": str(y_position + 25)})
+        etree.SubElement(edge_points, "mxPoint", attrib={"x": "300", "y": str(y_position + 25)})
+    
     # Add non-peered spokes to the right
     for index, spoke in enumerate(non_peered_spokes):
         y_position = start_y + index * spacing
@@ -418,23 +290,11 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             vertex="1",
             parent="1",
         )
-        spoke_cell.set(
-            "value",
-            f"Subscription: {
-                spoke['subscription_name']}\n{
-                spoke['name']}\n{
-                spoke['address_space']}",
-        )
+        spoke_cell.set("value", f"Subscription: {spoke['subscription_name']}\n{spoke['name']}\n{spoke['address_space']}")
         etree.SubElement(
             spoke_cell,
             "mxGeometry",
-            attrib={
-                "x": "1450",
-                "y": str(y_position),
-                "width": "400",
-                "height": "50",
-                "as": "geometry",
-            },
+            attrib={"x": "1450", "y": str(y_position), "width": "400", "height": "50", "as": "geometry"},
         )
 
         # Add image to the bottom right of the non-peered spoke
@@ -447,8 +307,8 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
             parent="1",
         )
         # Ensure 'x' and 'y' are integers before adding
-        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib["x"])
-        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib["y"])
+        spoke_x = int(spoke_cell.find(".//mxGeometry").attrib['x'])
+        spoke_y = int(spoke_cell.find(".//mxGeometry").attrib['y'])
 
         etree.SubElement(
             image,
@@ -460,22 +320,18 @@ def create_drawio_vnet_hub_and_spokes_diagram_HLD(
                 "height": "20",
                 "as": "geometry",
             },
-        )
-
+        )    
+    
     # Write to file
     tree = etree.ElementTree(mxfile)
     with open(output_filename, "wb") as f:
-        tree.write(
-            f, encoding="utf-8", xml_declaration=True, pretty_print=True
-        )
+        tree.write(f, encoding="utf-8", xml_declaration=True, pretty_print=True)
     logging.info(f"Draw.io diagram generated and saved to {output_filename}")
 
 
 # Generate the diagram from the JSON file
 if __name__ == "__main__":
     logging.info("Starting HLD diagram generation...")
-    create_drawio_vnet_hub_and_spokes_diagram_HLD(
-        "network_hld.drawio", "network_topology.json"
-    )
+    create_drawio_vnet_hub_and_spokes_diagram_HLD("network_hld.drawio", "network_topology.json")
     logging.info("Diagram generation complete.")
     print("Diagram generation complete.")
