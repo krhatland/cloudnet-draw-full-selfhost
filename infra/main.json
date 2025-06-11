@@ -99,7 +99,7 @@
         "functionAppConfig": {
           "deployment": {
             "storage": {
-              "type": "blobcontainer",
+              "type": "BlobContainer",
               "value": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip",
               "authentication": {
                 "type": "public"
