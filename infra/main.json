@@ -95,20 +95,19 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "httpsOnly": true,
-        "siteConfig": {
+        "functionAppConfig": {
+          "deployment": {
+            "packageUrl": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
+          },
+          "runtime": {
+            "name": "python",
+            "version": "3.10"
+          },
+          "scaleAndConcurrency": {
+            "maximumInstanceCount": 100,
+            "instanceMemoryMB": 2048
+          },
           "appSettings": [
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~4"
-            },
-            {
-              "name": "FUNCTIONS_WORKER_RUNTIME",
-              "value": "python"
-            },
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', parameters('storageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2022-09-01').keys[0].value, environment().suffixes.storage)]"
