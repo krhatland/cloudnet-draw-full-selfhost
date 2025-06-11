@@ -98,7 +98,7 @@
         "functionAppConfig": {
           "deployment": {
             "storage": {
-              "type": "zip",
+              "type": "BlobContainer",
               "url": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
             }
           },
