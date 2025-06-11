@@ -72,8 +72,8 @@
       "name": "[parameters('appServicePlanName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "FC1",
-        "tier": "FlexConsumption"
+        "name": "Y1",
+        "tier": "Dynamic"
       },
       "kind": "functionapp"
     },
