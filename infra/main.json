@@ -45,7 +45,7 @@
       "kind": "StorageV2",
       "properties": {
         "minimumTlsVersion": "TLS1_2",
-        "allowBlobPublicAccess": true,
+        "allowBlobPublicAccess": false,
         "networkAcls": { "bypass": "AzureServices", "defaultAction": "Deny" },
         "encryption": {
           "keySource": "Microsoft.Storage",
@@ -95,25 +95,29 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "httpsOnly": true,
-        "functionAppConfig": {
-          "deployment": {
-            "storage": {
-              "type": "blobcontainer",
-              "value": "[format('https://{0}.blob.core.windows.net/app-package-{1}', parameters('storageAccountName'), parameters('functionAppName'))]",
-              "authentication": {
-                "type": "storageaccountconnectionstring",
-                "storageAccountConnectionStringName": "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-              }
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "python"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', parameters('storageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2022-09-01').keys[0].value, environment().suffixes.storage)]"
+            },
+            {
+              "name": "DRAWING_CONTAINER_NAME",
+              "value": "[parameters('containerName')]"
             }
-          },
-          "runtime": {
-            "name": "python",
-            "version": "3.10"
-          },
-          "scaleAndConcurrency": {
-            "maximumInstanceCount": 100,
-            "instanceMemoryMB": 2048
-          }
+          ]
         }
       },
       "dependsOn": [
