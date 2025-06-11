@@ -73,8 +73,8 @@
         "httpsOnly": true,
         "functionAppConfig": {
           "deployment": {
-            "packageUrl": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip",
-            "type": "zip"
+            "type": "zip",
+            "packageUrl": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
           },
           "runtime": {
             "name": "python",
