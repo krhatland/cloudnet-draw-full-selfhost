@@ -95,15 +95,31 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "httpsOnly": true,
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', parameters('storageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2022-09-01').keys[0].value, environment().suffixes.storage)]"
+            },
+            {
+              "name": "DRAWING_STORAGE_URL",
+              "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2022-09-01').primaryEndpoints.blob]"
+            },
+            {
+              "name": "DRAWING_CONTAINER_NAME",
+              "value": "[parameters('containerName')]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            }
+          ]
+        },
         "functionAppConfig": {
           "deployment": {
             "storage": {
-              "type": "blobcontainer",
-              "value": "[format('https://{0}.blob.core.windows.net/app-package-{1}', parameters('storageAccountName'), parameters('functionAppName'))]",
-              "authentication": {
-                "type": "storageaccountconnectionstring",
-                "storageAccountConnectionStringName": "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-              }
+              "type": "zip",
+              "url": "https://cloudnetdrawappstorage.blob.core.windows.net/cloudnetdrawapp/function.zip"
             }
           },
           "runtime": {
