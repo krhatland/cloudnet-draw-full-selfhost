@@ -45,7 +45,7 @@
       "kind": "StorageV2",
       "properties": {
         "minimumTlsVersion": "TLS1_2",
-        "allowBlobPublicAccess": true,
+        "allowBlobPublicAccess": false,
         "networkAcls": { "bypass": "AzureServices", "defaultAction": "Deny" },
         "encryption": {
           "keySource": "Microsoft.Storage",
@@ -101,7 +101,8 @@
               "type": "blobcontainer",
               "value": "[format('https://{0}.blob.core.windows.net/app-package-{1}', parameters('storageAccountName'), parameters('functionAppName'))]",
               "authentication": {
-                "type": "SystemAssignedIdentity"
+                "type": "storageaccountconnectionstring",
+                "storageAccountConnectionStringName": "DEPLOYMENT_STORAGE_CONNECTION_STRING"
               }
             }
           },
