@@ -52,8 +52,9 @@
       "name": "[parameters('functionAppName')]",
       "location": "[parameters('location')]",
       "kind": "functionapp,linux",
-      "identity": {
-        "type": "SystemAssigned"
+      "properties": {
+        "siteConfig": {
+        "linuxFxVersion": "Python|3.10"
       },
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
