@@ -73,8 +73,8 @@
             }
           ]
         },
-        "linuxFxVersion": "Python|3.10",
-        "httpsOnly": true
+        "httpsOnly": true,
+        "linuxFxVersion": "Python|3.10"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
