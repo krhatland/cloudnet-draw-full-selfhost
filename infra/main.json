@@ -76,11 +76,11 @@
       "name": "[parameters('appServicePlanName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "FC1",
-        "tier": "FlexConsumption",
-        "size": "FC1",
-        "family": "FC",
-        "capacity": 0
+        "name": "EP1",
+        "tier": "ElasticPremium",
+        "size": "EP1",
+        "family": "EP",
+        "capacity": 1
       },
       "kind": "functionapp"
     },
