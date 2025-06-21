@@ -94,7 +94,18 @@
           ],
           "linuxFxVersion": "Python|3.10"
         },
-        "httpsOnly": true,
+        "httpsOnly": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/web', parameters('functionAppName'))]",
+      "properties": {
         "cors": {
           "allowedOrigins": [
             "https://portal.azure.com"
@@ -103,8 +114,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
       ]
     },
     {
