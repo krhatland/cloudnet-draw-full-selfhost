@@ -98,7 +98,8 @@
         "cors": {
           "allowedOrigins": [
             "https://portal.azure.com"
-          ]
+          ],
+          "supportCredentials": true
         }
       },
       "dependsOn": [
