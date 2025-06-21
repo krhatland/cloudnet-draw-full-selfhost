@@ -83,5 +83,18 @@ def get_vnet_topology():
         network_data["hub"] = vnet_candidates.pop(0)
 
     network_data["spokes"] = vnet_candidates
+
+    if not network_data["hub"] and not vnet_candidates:
+        # No VNets or hub found — inject synthetic hub with N/A info
+        network_data["hub"] = {
+            "name": "No VNet Found",
+            "address_space": "0.0.0.0/0",
+            "type": "virtual_hub",
+            "subscription_name": "N/A",
+            "expressroute": "No",
+            "vpn_gateway": "No",
+            "firewall": "No"
+        }
+
     logging.info("Azure query completed successfully.")
     return network_data

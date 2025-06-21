@@ -94,7 +94,12 @@
           ],
           "linuxFxVersion": "Python|3.10"
         },
-        "httpsOnly": true
+        "httpsOnly": true,
+        "cors": {
+          "allowedOrigins": [
+            "https://portal.azure.com"
+          ]
+        }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
