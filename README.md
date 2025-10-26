@@ -1,13 +1,11 @@
 # cloudnet-draw-full-selfhost
 IaC and Function code
 
-Check the New Website: ([Web](https://www.cloudnetdraw.com/)) 
+Check the New Website: ([Web](https://www.cloudnetdraw.com/))
 
 ## Deploy to Azure
 
-
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkrhatland%2Fcloudnet-draw-full-selfhost%2Fmain%2Finfra%2Fmain.json)
-
 
 ### Parameters
 
@@ -28,4 +26,3 @@ Environment variables provided to the Function App:
 
 - `DRAWING_STORAGE_URL` – blob endpoint of the drawing storage account
 - `DRAWING_CONTAINER_NAME` – container where diagrams are stored (`drawfunc`)
-
