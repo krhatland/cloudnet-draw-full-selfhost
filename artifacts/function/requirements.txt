@@ -1,0 +1,31 @@
+azure-common==1.1.28
+azure-core==1.34.0
+azure-identity==1.23.0
+azure-mgmt-core==1.5.0
+azure-mgmt-network==29.0.0
+azure-mgmt-resource==23.4.0
+azure-storage-blob==12.25.1
+certifi==2025.4.26
+cffi==1.17.1
+charset-normalizer==3.4.2
+cryptography==45.0.3
+idna==3.10
+isodate==0.7.2
+lxml==5.4.0
+msal==1.32.3
+msal-extensions==1.3.1
+pycparser==2.22
+PyJWT==2.10.1
+requests==2.32.3
+six==1.17.0
+typing_extensions==4.13.2
+urllib3==2.4.0
+azure-functions==1.20.0
+
+# Added dependencies for CloudNetDraw library support
+# Note: azure-mgmt-resourcegraph is optional. The self-hosted deployment
+# uses SubscriptionClient and NetworkManagementClient for topology discovery
+# and does not require Resource Graph by default. PyYAML is part of the
+# base environment in Azure Functions, so it does not need to be listed here.
+# azure-mgmt-resourcegraph==8.0.0
+PyYAML==6.0.2
