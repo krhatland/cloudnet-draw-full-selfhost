@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUiDefinition.MultiVm.json#",
+  "version": "0.1.2",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "parameters": {
+    "basics": [
+      {
+        "name": "functionAppName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Function App Name",
+        "toolTip": "Enter a globally unique name for the Azure Function App."
+      },
+      {
+        "name": "storageAccountName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Storage Account Name",
+        "toolTip": "Name of the storage account to hold the diagrams and JSON topology."
+      },
+      {
+        "name": "appServicePlanName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "App Service Plan Name",
+        "toolTip": "Name of the Elastic Premium plan for the function."
+      },
+      {
+        "name": "containerName",
+        "type": "Microsoft.Common.TextBox",
+        "defaultValue": "drawfunc",
+        "label": "Blob Container Name",
+        "toolTip": "Name of the blob container where diagrams will be stored."
+      },
+      {
+        "name": "location",
+        "type": "Microsoft.Common.Location",
+        "label": "Region",
+        "toolTip": "Select the Azure region for deployment."
+      },
+      {
+        "name": "confluenceBaseUrl",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Confluence Base URL",
+        "defaultValue": "https://yourcompany.atlassian.net",
+        "toolTip": "Base URL of your Confluence Cloud site (for example, https://yourcompany.atlassian.net)."
+      },
+      {
+        "name": "confluenceEmail",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Confluence Account Email",
+        "toolTip": "Email address of the Atlassian account used for API access."
+      },
+      {
+        "name": "confluenceApiToken",
+        "type": "Microsoft.Common.PasswordBox",
+        "label": "Confluence API Token",
+        "toolTip": "API token for the Atlassian account. This will be stored securely as an app setting."
+      },
+      {
+        "name": "confluencePageId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Confluence Page ID",
+        "toolTip": "Numeric ID of the Confluence page where diagrams will be attached."
+      },
+      {
+        "name": "confluenceAttachmentName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Confluence Attachment Name",
+        "defaultValue": "cloudnetdraw-topology.drawio",
+        "toolTip": "File name to use for the diagram attachment in Confluence."
+      }
+    ]
+  },
+  "outputs": {
+    "functionAppName": "[basics('functionAppName')]",
+    "storageAccountName": "[basics('storageAccountName')]",
+    "appServicePlanName": "[basics('appServicePlanName')]",
+    "containerName": "[basics('containerName')]",
+    "location": "[basics('location')]",
+    "confluenceBaseUrl": "[basics('confluenceBaseUrl')]",
+    "confluenceEmail": "[basics('confluenceEmail')]",
+    "confluenceApiToken": "[basics('confluenceApiToken')]",
+    "confluencePageId": "[basics('confluencePageId')]",
+    "confluenceAttachmentName": "[basics('confluenceAttachmentName')]",
+    "planId": "confluence-cloud"
+  }
+}
