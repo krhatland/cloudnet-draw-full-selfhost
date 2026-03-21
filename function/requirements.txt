@@ -25,6 +25,7 @@ azure-functions==1.20.0
 # Added dependencies for CloudNetDraw library support
 # Note: azure-mgmt-resourcegraph is optional. The self-hosted deployment
 # uses SubscriptionClient and NetworkManagementClient for topology discovery
-# and does not require Resource Graph by default.
+# and does not require Resource Graph by default. PyYAML is part of the
+# base environment in Azure Functions, so it does not need to be listed here.
 # azure-mgmt-resourcegraph==8.0.0
 PyYAML==6.0.2

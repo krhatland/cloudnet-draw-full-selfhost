@@ -5,44 +5,172 @@
   "parameters": {
     "basics": [
       {
-        "name": "functionAppName",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Function App Name",
-        "toolTip": "Enter a globally unique name for the Azure Function App."
-      },
-      {
-        "name": "storageAccountName",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Storage Account Name",
-        "toolTip": "Name of the storage account to hold the diagrams and JSON topology."
-      },
-      {
-        "name": "appServicePlanName",
-        "type": "Microsoft.Common.TextBox",
-        "label": "App Service Plan Name",
-        "toolTip": "Name of the Elastic Premium plan for the function."
-      },
-      {
-        "name": "containerName",
-        "type": "Microsoft.Common.TextBox",
-        "defaultValue": "drawfunc",
-        "label": "Blob Container Name",
-        "toolTip": "Name of the blob container where diagrams will be stored."
-      },
-      {
         "name": "location",
         "type": "Microsoft.Common.Location",
         "label": "Region",
-        "toolTip": "Select the Azure region for deployment."
+        "toolTip": "Select the Azure region for deployment. Flex Consumption availability is region-specific."
+      }
+    ],
+    "steps": [
+      {
+        "name": "deployment",
+        "label": "Deployment",
+        "elements": [
+          {
+            "name": "intro",
+            "type": "Microsoft.Common.InfoBox",
+            "options": {
+              "icon": "Info",
+              "text": "This package deploys CloudNet Draw on Azure Functions Flex Consumption and stores generated output in Blob Storage."
+            }
+          },
+          {
+            "name": "functionAppName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Function App Name",
+            "toolTip": "Enter a globally unique name for the Azure Function App.",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-z0-9-]{2,60}$",
+              "validationMessage": "Use 2-60 lowercase letters, numbers, or hyphens."
+            }
+          },
+          {
+            "name": "storageAccount",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Storage Account",
+            "toolTip": "Create a new storage account or choose an existing one in the same resource group and location.",
+            "defaultValue": {
+              "name": "cloudnetdrawsa01",
+              "type": "Standard_LRS"
+            },
+            "constraints": {
+              "allowedTypes": [
+                "Standard_LRS",
+                "Standard_ZRS",
+                "Standard_GRS",
+                "Standard_RAGRS"
+              ]
+            },
+            "options": {
+              "hideExisting": false
+            }
+          },
+          {
+            "name": "containerName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Output Container Name",
+            "defaultValue": "drawfunc",
+            "toolTip": "Blob container used for topology JSON and Draw.io diagram output.",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
+              "validationMessage": "Use a valid blob container name."
+            }
+          }
+        ]
+      },
+      {
+        "name": "scale",
+        "label": "Scale",
+        "elements": [
+          {
+            "name": "instanceMemoryMB",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Instance Memory",
+            "defaultValue": "2048 MB",
+            "toolTip": "Choose the memory size for each Flex Consumption instance.",
+            "constraints": {
+              "required": true,
+              "allowedValues": [
+                {
+                  "label": "512 MB",
+                  "value": 512
+                },
+                {
+                  "label": "2048 MB",
+                  "value": 2048
+                },
+                {
+                  "label": "4096 MB",
+                  "value": 4096
+                }
+              ]
+            }
+          },
+          {
+            "name": "maximumInstanceCount",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Maximum Instance Count",
+            "defaultValue": "40 instances",
+            "toolTip": "Caps how far the Flex Consumption app can scale out.",
+            "constraints": {
+              "required": true,
+              "allowedValues": [
+                {
+                  "label": "10 instances",
+                  "value": 10
+                },
+                {
+                  "label": "20 instances",
+                  "value": 20
+                },
+                {
+                  "label": "40 instances",
+                  "value": 40
+                },
+                {
+                  "label": "100 instances",
+                  "value": 100
+                }
+              ]
+            }
+          },
+          {
+            "name": "runtimeVersion",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Python Version",
+            "defaultValue": "Python 3.11",
+            "toolTip": "Choose the Python runtime version for the Function App.",
+            "constraints": {
+              "required": true,
+              "allowedValues": [
+                {
+                  "label": "Python 3.11",
+                  "value": "3.11"
+                },
+                {
+                  "label": "Python 3.10",
+                  "value": "3.10"
+                }
+              ]
+            }
+          }
+        ]
       }
     ]
   },
   "outputs": {
-    "functionAppName": "[basics('functionAppName')]",
-    "storageAccountName": "[basics('storageAccountName')]",
-    "appServicePlanName": "[basics('appServicePlanName')]",
-    "containerName": "[basics('containerName')]",
     "location": "[basics('location')]",
-    "planId": "local-only"
+    "functionAppName": "[steps('deployment').functionAppName]",
+    "hostingPlanName": "",
+    "storageAccountName": "[steps('deployment').storageAccount.name]",
+    "storageAccountSkuName": "[steps('deployment').storageAccount.type]",
+    "storageAccountKind": "StorageV2",
+    "storageAccountNewOrExisting": "[steps('deployment').storageAccount.newOrExisting]",
+    "containerName": "[steps('deployment').containerName]",
+    "deploymentContainerName": "functionpackage",
+    "instanceMemoryMB": "[steps('scale').instanceMemoryMB]",
+    "maximumInstanceCount": "[steps('scale').maximumInstanceCount]",
+    "runtimeName": "python",
+    "runtimeVersion": "[steps('scale').runtimeVersion]",
+    "outputMode": "storage",
+    "confluenceBaseUrl": "",
+    "confluenceUsername": "",
+    "confluenceApiToken": "",
+    "confluencePageId": "",
+    "confluenceAttachmentPrefix": "cloudnetdraw-topology",
+    "applicationInsightsName": "",
+    "logAnalyticsWorkspaceName": ""
   }
 }

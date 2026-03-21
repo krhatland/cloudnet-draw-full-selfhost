@@ -21,7 +21,7 @@
             "type": "Microsoft.Common.InfoBox",
             "options": {
               "icon": "Info",
-              "text": "This package deploys CloudNet Draw on Azure Functions Flex Consumption and stores generated output in Blob Storage."
+              "text": "This package deploys CloudNet Draw on Azure Functions Flex Consumption and stores output in Blob Storage before exporting attachments to Confluence."
             }
           },
           {
@@ -147,6 +147,64 @@
             }
           }
         ]
+      },
+      {
+        "name": "confluence",
+        "label": "Confluence",
+        "elements": [
+          {
+            "name": "confluenceHelp",
+            "type": "Microsoft.Common.InfoBox",
+            "options": {
+              "icon": "Info",
+              "text": "Provide the Confluence page and API credentials used to upload the generated JSON, HLD, and MLD attachments."
+            }
+          },
+          {
+            "name": "confluenceBaseUrl",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Confluence Base URL",
+            "defaultValue": "https://yourcompany.atlassian.net",
+            "toolTip": "Base URL of your Confluence site. Values with or without /wiki are accepted.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "confluenceUsername",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Confluence Username or Email",
+            "toolTip": "Confluence account username or email used for API authentication.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "confluenceApiToken",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": "Confluence API Token",
+            "toolTip": "API token used for Confluence REST API authentication."
+          },
+          {
+            "name": "confluencePageId",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Confluence Page ID",
+            "toolTip": "Identifier of the Confluence page that will receive generated attachments.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "confluenceAttachmentPrefix",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Attachment Prefix",
+            "defaultValue": "cloudnetdraw-topology",
+            "toolTip": "Prefix used to name the JSON, HLD, and MLD attachments.",
+            "constraints": {
+              "required": true
+            }
+          }
+        ]
       }
     ]
   },
@@ -164,12 +222,12 @@
     "maximumInstanceCount": "[steps('scale').maximumInstanceCount]",
     "runtimeName": "python",
     "runtimeVersion": "[steps('scale').runtimeVersion]",
-    "outputMode": "storage",
-    "confluenceBaseUrl": "",
-    "confluenceUsername": "",
-    "confluenceApiToken": "",
-    "confluencePageId": "",
-    "confluenceAttachmentPrefix": "cloudnetdraw-topology",
+    "outputMode": "confluence",
+    "confluenceBaseUrl": "[steps('confluence').confluenceBaseUrl]",
+    "confluenceUsername": "[steps('confluence').confluenceUsername]",
+    "confluenceApiToken": "[steps('confluence').confluenceApiToken]",
+    "confluencePageId": "[steps('confluence').confluencePageId]",
+    "confluenceAttachmentPrefix": "[steps('confluence').confluenceAttachmentPrefix]",
     "applicationInsightsName": "",
     "logAnalyticsWorkspaceName": ""
   }
