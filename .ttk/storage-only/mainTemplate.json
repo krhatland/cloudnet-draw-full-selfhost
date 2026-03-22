@@ -119,13 +119,27 @@
     },
     "runtimeVersion": {
       "type": "string",
-      "defaultValue": "3.11",
+      "defaultValue": "3.12",
       "allowedValues": [
-        "3.10",
-        "3.11"
+        "3.11",
+        "3.12"
       ],
       "metadata": {
         "description": "Azure Functions runtime version for Python."
+      }
+    },
+    "selectedSubscriptionIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Subscription IDs that CloudNet Draw should query."
+      }
+    },
+    "grantReaderToSelectedSubscriptions": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "When true, assigns the Reader role to the function managed identity on each selected subscription."
       }
     },
     "outputMode": {
@@ -204,21 +218,20 @@
     }
   },
   "variables": {
-    "helper": {
-      "hostingPlanName": "[if(empty(parameters('hostingPlanName')), format('{0}-plan', parameters('functionAppName')), parameters('hostingPlanName'))]",
-      "applicationInsightsName": "[if(empty(parameters('applicationInsightsName')), format('{0}-appi', parameters('functionAppName')), parameters('applicationInsightsName'))]",
-      "logAnalyticsWorkspaceName": "[if(empty(parameters('logAnalyticsWorkspaceName')), format('{0}-law', parameters('functionAppName')), parameters('logAnalyticsWorkspaceName'))]",
-      "storageAccountResourceId": "[resourceId(parameters('resourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
-      "functionAppResourceId": "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",
-      "hostingPlanResourceId": "[resourceId('Microsoft.Web/serverfarms', variables('helper').hostingPlanName)]",
-      "logAnalyticsWorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('helper').logAnalyticsWorkspaceName)]",
-      "applicationInsightsResourceId": "[resourceId('Microsoft.Insights/components', variables('helper').applicationInsightsName)]",
-      "storageDnsSuffix": "[environment().suffixes.storage]",
-      "functionPackageBaseUri": "[uri(parameters('_artifactsLocation'), 'artifacts/function.zip')]",
-      "functionPackageUri": "[if(empty(parameters('_artifactsLocationSasToken')), variables('helper').functionPackageBaseUri, concat(variables('helper').functionPackageBaseUri, parameters('_artifactsLocationSasToken')))]",
-      "deploymentStorageContainerUri": "[uri(format('https://{0}.blob.{1}/', parameters('storageAccountName'), variables('helper').storageDnsSuffix), parameters('deploymentContainerName'))]",
-      "storageBlobDataContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
-    },
+    "hostingPlanName": "[if(empty(parameters('hostingPlanName')), format('{0}-plan', parameters('functionAppName')), parameters('hostingPlanName'))]",
+    "applicationInsightsName": "[if(empty(parameters('applicationInsightsName')), format('{0}-appi', parameters('functionAppName')), parameters('applicationInsightsName'))]",
+    "logAnalyticsWorkspaceName": "[if(empty(parameters('logAnalyticsWorkspaceName')), format('{0}-law', parameters('functionAppName')), parameters('logAnalyticsWorkspaceName'))]",
+    "storageAccountResourceId": "[resourceId(parameters('resourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+    "functionAppResourceId": "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",
+    "hostingPlanResourceId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+    "logAnalyticsWorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+    "applicationInsightsResourceId": "[resourceId('Microsoft.Insights/components', variables('applicationInsightsName'))]",
+    "storageDnsSuffix": "[environment().suffixes.storage]",
+    "functionPackageBaseUri": "[uri(parameters('_artifactsLocation'), 'artifacts/function.zip')]",
+    "functionPackageUri": "[if(empty(parameters('_artifactsLocationSasToken')), variables('functionPackageBaseUri'), concat(variables('functionPackageBaseUri'), parameters('_artifactsLocationSasToken')))]",
+    "deploymentStorageContainerUri": "[uri(format('https://{0}.blob.{1}/', parameters('storageAccountName'), variables('storageDnsSuffix')), parameters('deploymentContainerName'))]",
+    "storageBlobDataContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+    "readerRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
     "helpers": {
       "storageBlobServiceDefaultName": "[format('{0}/default', parameters('storageAccountName'))]",
       "outputContainerFullName": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('containerName'))]",
@@ -249,7 +262,7 @@
       "apiVersion": "2023-05-01",
       "name": "[variables('helpers').storageBlobServiceDefaultName]",
       "dependsOn": [
-        "[variables('helper').storageAccountResourceId]"
+        "[variables('storageAccountResourceId')]"
       ]
     },
     {
@@ -277,7 +290,7 @@
     {
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2023-09-01",
-      "name": "[variables('helper').logAnalyticsWorkspaceName]",
+      "name": "[variables('logAnalyticsWorkspaceName')]",
       "location": "[parameters('location')]",
       "properties": {
         "sku": {
@@ -289,21 +302,21 @@
     {
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
-      "name": "[variables('helper').applicationInsightsName]",
+      "name": "[variables('applicationInsightsName')]",
       "location": "[parameters('location')]",
       "kind": "web",
       "dependsOn": [
-        "[variables('helper').logAnalyticsWorkspaceResourceId]"
+        "[variables('logAnalyticsWorkspaceResourceId')]"
       ],
       "properties": {
         "Application_Type": "web",
-        "WorkspaceResourceId": "[variables('helper').logAnalyticsWorkspaceResourceId]"
+        "WorkspaceResourceId": "[variables('logAnalyticsWorkspaceResourceId')]"
       }
     },
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2023-12-01",
-      "name": "[variables('helper').hostingPlanName]",
+      "name": "[variables('hostingPlanName')]",
       "location": "[parameters('location')]",
       "sku": {
         "tier": "FlexConsumption",
@@ -324,18 +337,18 @@
         "type": "SystemAssigned"
       },
       "dependsOn": [
-        "[variables('helper').hostingPlanResourceId]",
-        "[variables('helper').applicationInsightsResourceId]",
+        "[variables('hostingPlanResourceId')]",
+        "[variables('applicationInsightsResourceId')]",
         "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', parameters('deploymentContainerName'))]"
       ],
       "properties": {
-        "serverFarmId": "[variables('helper').hostingPlanResourceId]",
+        "serverFarmId": "[variables('hostingPlanResourceId')]",
         "httpsOnly": true,
         "functionAppConfig": {
           "deployment": {
             "storage": {
               "type": "blobContainer",
-              "value": "[variables('helper').deploymentStorageContainerUri]",
+              "value": "[variables('deploymentStorageContainerUri')]",
               "authentication": {
                 "type": "SystemAssignedIdentity"
               }
@@ -363,7 +376,7 @@
             },
             {
               "name": "DRAWING_STORAGE_URL",
-              "value": "[format('https://{0}.blob.{1}', parameters('storageAccountName'), variables('helper').storageDnsSuffix)]"
+              "value": "[format('https://{0}.blob.{1}', parameters('storageAccountName'), variables('storageDnsSuffix'))]"
             },
             {
               "name": "DRAWING_CONTAINER_NAME",
@@ -372,6 +385,10 @@
             {
               "name": "OUTPUT_MODE",
               "value": "[parameters('outputMode')]"
+            },
+            {
+              "name": "SELECTED_SUBSCRIPTION_IDS",
+              "value": "[string(parameters('selectedSubscriptionIds'))]"
             },
             {
               "name": "CONFLUENCE_BASE_URL",
@@ -395,7 +412,7 @@
             },
             {
               "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-              "value": "[reference(variables('helper').applicationInsightsResourceId, '2020-02-02').ConnectionString]"
+              "value": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').ConnectionString]"
             }
           ]
         }
@@ -404,15 +421,71 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
-      "name": "[guid(variables('helper').storageAccountResourceId, variables('helper').functionAppResourceId, 'storage-blob-data-contributor')]",
-      "scope": "[variables('helper').storageAccountResourceId]",
+      "name": "[guid(variables('storageAccountResourceId'), variables('functionAppResourceId'), 'storage-blob-data-contributor')]",
+      "scope": "[variables('storageAccountResourceId')]",
       "dependsOn": [
-        "[variables('helper').functionAppResourceId]"
+        "[variables('functionAppResourceId')]"
       ],
       "properties": {
-        "roleDefinitionId": "[variables('helper').storageBlobDataContributorRoleDefinitionId]",
-        "principalId": "[reference(variables('helper').functionAppResourceId, '2023-12-01', 'Full').identity.principalId]",
+        "roleDefinitionId": "[variables('storageBlobDataContributorRoleDefinitionId')]",
+        "principalId": "[reference(variables('functionAppResourceId'), '2023-12-01', 'Full').identity.principalId]",
         "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "condition": "[and(parameters('grantReaderToSelectedSubscriptions'), greater(length(parameters('selectedSubscriptionIds')), 0))]",
+      "copy": {
+        "name": "selectedSubscriptionReaderAssignments",
+        "count": "[length(parameters('selectedSubscriptionIds'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('grant-reader-sub-{0}', replace(parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')], '-', ''))]",
+      "subscriptionId": "[parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')]]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('functionAppResourceId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "parameters": {
+          "principalId": {
+            "value": "[reference(variables('functionAppResourceId'), '2023-12-01', 'Full').identity.principalId]"
+          },
+          "targetSubscriptionId": {
+            "value": "[parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')]]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "targetSubscriptionId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "readerRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('targetSubscriptionId'), parameters('principalId'), 'cloudnetdraw-reader')]",
+              "properties": {
+                "roleDefinitionId": "[variables('readerRoleDefinitionId')]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -422,7 +495,7 @@
       "location": "[parameters('location')]",
       "kind": "AzurePowerShell",
       "dependsOn": [
-        "[guid(variables('helper').storageAccountResourceId, variables('helper').functionAppResourceId, 'storage-blob-data-contributor')]"
+        "[guid(variables('storageAccountResourceId'), variables('functionAppResourceId'), 'storage-blob-data-contributor')]"
       ],
       "properties": {
         "azPowerShellVersion": "11.4",
@@ -439,7 +512,7 @@
         "[resourceId('Microsoft.Resources/deploymentScripts', 'waitForBlobRbacPropagation')]"
       ],
       "properties": {
-        "packageUri": "[variables('helper').functionPackageUri]",
+        "packageUri": "[variables('functionPackageUri')]",
         "remoteBuild": true
       }
     }
@@ -451,23 +524,23 @@
     },
     "hostingPlanName": {
       "type": "string",
-      "value": "[variables('helper').hostingPlanName]"
+      "value": "[variables('hostingPlanName')]"
     },
     "functionAppEndpoint": {
       "type": "string",
-      "value": "[format('https://{0}', reference(variables('helper').functionAppResourceId).defaultHostName)]"
+      "value": "[format('https://{0}', reference(variables('functionAppResourceId')).defaultHostName)]"
     },
     "storageContainerUrl": {
       "type": "string",
-      "value": "[uri(format('https://{0}.blob.{1}/', parameters('storageAccountName'), variables('helper').storageDnsSuffix), parameters('containerName'))]"
+      "value": "[uri(format('https://{0}.blob.{1}/', parameters('storageAccountName'), variables('storageDnsSuffix')), parameters('containerName'))]"
     },
     "applicationInsightsName": {
       "type": "string",
-      "value": "[variables('helper').applicationInsightsName]"
+      "value": "[variables('applicationInsightsName')]"
     },
     "logAnalyticsWorkspaceName": {
       "type": "string",
-      "value": "[variables('helper').logAnalyticsWorkspaceName]"
+      "value": "[variables('logAnalyticsWorkspaceName')]"
     },
     "runtime": {
       "type": "string",
@@ -476,6 +549,10 @@
     "outputMode": {
       "type": "string",
       "value": "[parameters('outputMode')]"
+    },
+    "selectedSubscriptionCount": {
+      "type": "int",
+      "value": "[length(parameters('selectedSubscriptionIds'))]"
     }
   }
 }

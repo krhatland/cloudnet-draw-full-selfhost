@@ -380,7 +380,15 @@ def find_peered_vnets(peering_resource_ids: List[str]) -> Tuple[List[Dict[str, A
 
 def get_vnet_topology_for_selected_subscriptions(subscription_ids: List[str]) -> Dict[str, Any]:
     """Collect all VNets and their details across selected subscriptions"""
-    network_data = {"vnets": []}
+    network_data = {
+        "vnets": [],
+        "inaccessible_subscriptions": [],
+        "subscription_access_summary": {
+            "requested": len(subscription_ids),
+            "accessible": 0,
+            "inaccessible": 0
+        }
+    }
     vnet_candidates = []
     
     subscription_client = SubscriptionClient(get_credentials())
@@ -398,7 +406,12 @@ def get_vnet_topology_for_selected_subscriptions(subscription_ids: List[str]) ->
         except Exception as e:
             error_msg = f"Could not access subscription {subscription_id}: {e}"
             logging.error(error_msg)
-            sys.exit(1)
+            network_data["inaccessible_subscriptions"].append({
+                "subscription_id": subscription_id,
+                "stage": "subscription_lookup",
+                "error": str(e)
+            })
+            continue
 
         # Detect Virtual WAN Hub if it exists - add to vnets array
         try:
@@ -442,15 +455,17 @@ def get_vnet_topology_for_selected_subscriptions(subscription_ids: List[str]) ->
                         }
                         vnet_candidates.append(virtual_hub_info)
                 except Exception as e:
-                    error_msg = f"Could not retrieve virtual hub details for {vwan.name} in subscription {subscription_id}: {e}"
-                    logging.error(error_msg)
-                    sys.exit(1)
+                    logging.warning(
+                        "Could not retrieve virtual hub details for %s in subscription %s: %s",
+                        vwan.name,
+                        subscription_id,
+                        e,
+                    )
         except Exception as e:
-            error_msg = f"Could not list virtual WANs for subscription {subscription_id}: {e}"
-            logging.error(error_msg)
-            sys.exit(1)
+            logging.warning("Could not list virtual WANs for subscription %s: %s", subscription_id, e)
 
         # Process VNets
+        subscription_vnet_error = None
         try:
             for vnet in network_client.virtual_networks.list_all():
                 try:
@@ -504,23 +519,42 @@ def get_vnet_topology_for_selected_subscriptions(subscription_ids: List[str]) ->
                     vnet_candidates.append(vnet_info)
                     
                 except Exception as e:
-                    error_msg = f"Could not process VNet {vnet.name} in subscription {subscription_id}: {e}"
-                    logging.error(error_msg)
-                    sys.exit(1)
+                    logging.warning(
+                        "Could not process VNet %s in subscription %s: %s",
+                        vnet.name,
+                        subscription_id,
+                        e,
+                    )
                     
         except Exception as e:
-            error_msg = f"Could not retrieve VNets for subscription {subscription_id}: {e}"
-            logging.error(error_msg)
-            sys.exit(1)
+            subscription_vnet_error = str(e)
+            logging.error("Could not retrieve VNets for subscription %s: %s", subscription_id, e)
+
+        if subscription_vnet_error:
+            network_data["inaccessible_subscriptions"].append({
+                "subscription_id": subscription_id,
+                "subscription_name": subscription_name,
+                "stage": "vnet_enumeration",
+                "error": subscription_vnet_error
+            })
+        else:
+            network_data["subscription_access_summary"]["accessible"] += 1
 
     # All VNets are equal - no hub detection needed
     network_data["vnets"] = vnet_candidates
+    network_data["subscription_access_summary"]["inaccessible"] = len(network_data["inaccessible_subscriptions"])
     
     # Check if no VNets were found across all subscriptions - this is fatal
     if not vnet_candidates:
         logging.error("No VNets found across all subscriptions. This is a fatal error.")
         logging.info("Individual subscriptions without VNets is normal, but finding zero VNets total is not supported.")
         sys.exit(1)
+
+    if network_data["inaccessible_subscriptions"]:
+        logging.warning(
+            "Skipped %s inaccessible subscriptions during discovery",
+            len(network_data["inaccessible_subscriptions"]),
+        )
     
     return network_data
 

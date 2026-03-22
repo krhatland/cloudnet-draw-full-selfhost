@@ -128,6 +128,20 @@
         "description": "Azure Functions runtime version for Python."
       }
     },
+    "selectedSubscriptionIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Subscription IDs that CloudNet Draw should query."
+      }
+    },
+    "grantReaderToSelectedSubscriptions": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "When true, assigns the Reader role to the function managed identity on each selected subscription."
+      }
+    },
     "outputMode": {
       "type": "string",
       "defaultValue": "storage",
@@ -217,6 +231,7 @@
     "functionPackageUri": "[if(empty(parameters('_artifactsLocationSasToken')), variables('functionPackageBaseUri'), concat(variables('functionPackageBaseUri'), parameters('_artifactsLocationSasToken')))]",
     "deploymentStorageContainerUri": "[uri(format('https://{0}.blob.{1}/', parameters('storageAccountName'), variables('storageDnsSuffix')), parameters('deploymentContainerName'))]",
     "storageBlobDataContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+    "readerRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
     "helpers": {
       "storageBlobServiceDefaultName": "[format('{0}/default', parameters('storageAccountName'))]",
       "outputContainerFullName": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('containerName'))]",
@@ -372,6 +387,10 @@
               "value": "[parameters('outputMode')]"
             },
             {
+              "name": "SELECTED_SUBSCRIPTION_IDS",
+              "value": "[string(parameters('selectedSubscriptionIds'))]"
+            },
+            {
               "name": "CONFLUENCE_BASE_URL",
               "value": "[parameters('confluenceBaseUrl')]"
             },
@@ -411,6 +430,62 @@
         "roleDefinitionId": "[variables('storageBlobDataContributorRoleDefinitionId')]",
         "principalId": "[reference(variables('functionAppResourceId'), '2023-12-01', 'Full').identity.principalId]",
         "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "condition": "[and(parameters('grantReaderToSelectedSubscriptions'), greater(length(parameters('selectedSubscriptionIds')), 0))]",
+      "copy": {
+        "name": "selectedSubscriptionReaderAssignments",
+        "count": "[length(parameters('selectedSubscriptionIds'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('grant-reader-sub-{0}', replace(parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')], '-', ''))]",
+      "subscriptionId": "[parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')]]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('functionAppResourceId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "parameters": {
+          "principalId": {
+            "value": "[reference(variables('functionAppResourceId'), '2023-12-01', 'Full').identity.principalId]"
+          },
+          "targetSubscriptionId": {
+            "value": "[parameters('selectedSubscriptionIds')[copyIndex('selectedSubscriptionReaderAssignments')]]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "targetSubscriptionId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "readerRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('targetSubscriptionId'), parameters('principalId'), 'cloudnetdraw-reader')]",
+              "properties": {
+                "roleDefinitionId": "[variables('readerRoleDefinitionId')]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -474,6 +549,10 @@
     "outputMode": {
       "type": "string",
       "value": "[parameters('outputMode')]"
+    },
+    "selectedSubscriptionCount": {
+      "type": "int",
+      "value": "[length(parameters('selectedSubscriptionIds'))]"
     }
   }
 }

@@ -27,8 +27,8 @@ def main(mytimer: func.TimerRequest) -> None:
     azure_client._credentials = credential
 
     try:
-        subscription_ids = azure_client.get_all_subscription_ids()
-        logging.info("Found %s subscriptions", len(subscription_ids))
+        subscription_ids = get_target_subscription_ids()
+        logging.info("Using %s subscriptions for topology discovery", len(subscription_ids))
     except Exception as exc:
         logging.exception("Failed to list subscriptions: %s", exc)
         return
@@ -38,6 +38,16 @@ def main(mytimer: func.TimerRequest) -> None:
     except Exception as exc:
         logging.exception("Failed to retrieve VNet topology: %s", exc)
         return
+
+    inaccessible_subscriptions = topology.get("inaccessible_subscriptions", [])
+    if inaccessible_subscriptions:
+        for subscription in inaccessible_subscriptions:
+            logging.warning(
+                "Subscription access issue: subscription_id=%s stage=%s error=%s",
+                subscription.get("subscription_id", "unknown"),
+                subscription.get("stage", "unknown"),
+                subscription.get("error", "unknown"),
+            )
 
     output_files = create_output_files(timestamp, topology)
     if not output_files:
@@ -56,6 +66,29 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.warning("Unsupported OUTPUT_MODE '%s'. Falling back to storage-only behavior.", output_mode)
 
     logging.info("DrawTrigger function execution completed successfully")
+
+
+def get_target_subscription_ids() -> List[str]:
+    configured_subscription_ids = os.environ.get("SELECTED_SUBSCRIPTION_IDS", "").strip()
+    if configured_subscription_ids:
+        try:
+            parsed_value = json.loads(configured_subscription_ids)
+            if isinstance(parsed_value, list):
+                subscription_ids = [str(item).strip() for item in parsed_value if str(item).strip()]
+            else:
+                subscription_ids = []
+        except json.JSONDecodeError:
+            subscription_ids = [item.strip() for item in configured_subscription_ids.split(",") if item.strip()]
+
+        if subscription_ids:
+            logging.info("Using subscription IDs provided by deployment configuration")
+            return subscription_ids
+
+        logging.warning("SELECTED_SUBSCRIPTION_IDS was set but no valid subscription IDs were found; falling back to all accessible subscriptions")
+
+    subscription_ids = azure_client.get_all_subscription_ids()
+    logging.info("No explicit subscription selection provided; discovered %s accessible subscriptions", len(subscription_ids))
+    return subscription_ids
 
 
 def create_output_files(timestamp: str, topology: Dict[str, object]) -> Dict[str, Path]:
