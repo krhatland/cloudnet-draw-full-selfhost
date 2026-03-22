@@ -173,7 +173,7 @@
             "type": "Microsoft.Common.InfoBox",
             "options": {
               "icon": "Info",
-              "text": "Provide the Confluence page and API credentials used to upload the generated JSON, HLD, and MLD attachments."
+              "text": "Provide the Confluence page and the credentials used for Basic authentication. This deployment currently requires both a username or email and an API token to upload the generated JSON, HLD, and MLD attachments."
             }
           },
           {
@@ -196,7 +196,7 @@
             "name": "confluenceUsername",
             "type": "Microsoft.Common.TextBox",
             "label": "Confluence Username or Email",
-            "toolTip": "Confluence account username or email used for API authentication.",
+            "toolTip": "Required together with the API token because this deployment uses Basic authentication for Confluence.",
             "constraints": {
               "required": true,
               "validations": [
