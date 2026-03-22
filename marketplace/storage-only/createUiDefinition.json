@@ -3,13 +3,21 @@
   "version": "0.1.2-preview",
   "handler": "Microsoft.Azure.CreateUIDef",
   "parameters": {
-    "basics": [
-      {
-        "name": "location",
-        "type": "Microsoft.Common.Location",
-        "label": "Region",
-        "toolTip": "Select the Azure region for deployment. Flex Consumption availability is region-specific."
+    "config": {
+      "basics": {
+        "location": {
+          "label": "Region",
+          "toolTip": "Select the Azure region for deployment. Flex Consumption availability is region-specific.",
+          "resourceTypes": [
+            "Microsoft.Web/sites",
+            "Microsoft.Storage/storageAccounts",
+            "Microsoft.OperationalInsights/workspaces",
+            "Microsoft.Insights/components"
+          ]
+        }
       }
+    },
+    "basics": [
     ],
     "steps": [
       {
