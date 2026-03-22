@@ -1,6 +1,6 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUiDefinition.MultiVm.json#",
-  "version": "0.1.2",
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "version": "0.1.2-preview",
   "handler": "Microsoft.Azure.CreateUIDef",
   "parameters": {
     "basics": [
@@ -31,8 +31,12 @@
             "toolTip": "Enter a globally unique name for the Azure Function App.",
             "constraints": {
               "required": true,
-              "regex": "^[a-z0-9-]{2,60}$",
-              "validationMessage": "Use 2-60 lowercase letters, numbers, or hyphens."
+              "validations": [
+                {
+                  "regex": "^[a-z0-9-]{2,60}$",
+                  "message": "Use 2-60 lowercase letters, numbers, or hyphens."
+                }
+              ]
             }
           },
           {
@@ -64,8 +68,12 @@
             "toolTip": "Blob container used for topology JSON and Draw.io diagram output.",
             "constraints": {
               "required": true,
-              "regex": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
-              "validationMessage": "Use a valid blob container name."
+              "validations": [
+                {
+                  "regex": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
+                  "message": "Use a valid blob container name."
+                }
+              ]
             }
           }
         ]
@@ -130,47 +138,40 @@
             "name": "runtimeVersion",
             "type": "Microsoft.Common.DropDown",
             "label": "Python Version",
-            "defaultValue": "Python 3.11",
+            "defaultValue": "Python 3.12",
             "toolTip": "Choose the Python runtime version for the Function App.",
             "constraints": {
               "required": true,
               "allowedValues": [
                 {
-                  "label": "Python 3.11",
-                  "value": "3.11"
+                  "label": "Python 3.12",
+                  "value": "3.12"
                 },
                 {
-                  "label": "Python 3.10",
-                  "value": "3.10"
+                  "label": "Python 3.11",
+                  "value": "3.11"
                 }
               ]
             }
           }
         ]
       }
-    ]
-  },
-  "outputs": {
-    "location": "[basics('location')]",
-    "functionAppName": "[steps('deployment').functionAppName]",
-    "hostingPlanName": "",
-    "storageAccountName": "[steps('deployment').storageAccount.name]",
-    "storageAccountSkuName": "[steps('deployment').storageAccount.type]",
-    "storageAccountKind": "StorageV2",
-    "storageAccountNewOrExisting": "[steps('deployment').storageAccount.newOrExisting]",
-    "containerName": "[steps('deployment').containerName]",
-    "deploymentContainerName": "functionpackage",
-    "instanceMemoryMB": "[steps('scale').instanceMemoryMB]",
-    "maximumInstanceCount": "[steps('scale').maximumInstanceCount]",
-    "runtimeName": "python",
-    "runtimeVersion": "[steps('scale').runtimeVersion]",
-    "outputMode": "storage",
-    "confluenceBaseUrl": "",
-    "confluenceUsername": "",
-    "confluenceApiToken": "",
-    "confluencePageId": "",
-    "confluenceAttachmentPrefix": "cloudnetdraw-topology",
-    "applicationInsightsName": "",
-    "logAnalyticsWorkspaceName": ""
+    ],
+    "outputs": {
+      "location": "[location()]",
+      "functionAppName": "[steps('deployment').functionAppName]",
+      "storageAccountName": "[steps('deployment').storageAccount.name]",
+      "resourceGroup": "[steps('deployment').storageAccount.resourceGroup]",
+      "storageAccountSkuName": "[steps('deployment').storageAccount.type]",
+      "storageAccountKind": "StorageV2",
+      "newOrExisting": "[steps('deployment').storageAccount.newOrExisting]",
+      "containerName": "[steps('deployment').containerName]",
+      "deploymentContainerName": "functionpackage",
+      "instanceMemoryMB": "[steps('scale').instanceMemoryMB]",
+      "maximumInstanceCount": "[steps('scale').maximumInstanceCount]",
+      "runtimeName": "python",
+      "runtimeVersion": "[steps('scale').runtimeVersion]",
+      "outputMode": "storage"
+    }
   }
 }

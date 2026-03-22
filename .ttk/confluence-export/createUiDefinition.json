@@ -138,18 +138,18 @@
             "name": "runtimeVersion",
             "type": "Microsoft.Common.DropDown",
             "label": "Python Version",
-            "defaultValue": "Python 3.12",
+            "defaultValue": "Python 3.11",
             "toolTip": "Choose the Python runtime version for the Function App.",
             "constraints": {
               "required": true,
               "allowedValues": [
                 {
-                  "label": "Python 3.12",
-                  "value": "3.12"
-                },
-                {
                   "label": "Python 3.11",
                   "value": "3.11"
+                },
+                {
+                  "label": "Python 3.10",
+                  "value": "3.10"
                 }
               ]
             }

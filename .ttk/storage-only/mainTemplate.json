@@ -119,10 +119,10 @@
     },
     "runtimeVersion": {
       "type": "string",
-      "defaultValue": "3.12",
+      "defaultValue": "3.11",
       "allowedValues": [
-        "3.11",
-        "3.12"
+        "3.10",
+        "3.11"
       ],
       "metadata": {
         "description": "Azure Functions runtime version for Python."
